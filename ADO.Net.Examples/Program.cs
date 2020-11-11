@@ -15,6 +15,7 @@ namespace ADO.Net.Examples
             await Task.WhenAll(
                 ExecuteScalarAsync(connectionString),
                 ExecuteStoredProcedureWithOutputParameterAsync(connectionString));
+            ExecuteReader(connectionString);
         }
 
         /// <summary>
@@ -58,6 +59,22 @@ namespace ADO.Net.Examples
             conn.Open();
             await cmd.ExecuteNonQueryAsync();
             Console.WriteLine($"Total number of stores: {(int)cmd.Parameters["@count"].Value}");
+        }
+
+        /// <summary>
+        /// The 'ExecuteReader' methods creates a data reader (a forward-only cursor) that
+        /// can be used to iterate through one or more result sets
+        /// </summary>
+        static void ExecuteReader(string connectionString)
+        {
+            using var conn = new SqlConnection(connectionString);
+            using var cmd = new SqlCommand("SELECT store_name FROM sales.stores;", conn);
+            conn.Open();
+            using var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+            while (reader.Read())
+            {
+                Console.WriteLine($"\tStore: {reader["store_name"]}");
+            }
         }
     }
 }
