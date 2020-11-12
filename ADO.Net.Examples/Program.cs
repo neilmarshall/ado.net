@@ -27,11 +27,18 @@ namespace ADO.Net.Examples
         /// </summary>
         static void ExecuteScalar(string connectionString)
         {
-            using var conn = new SqlConnection(connectionString);
-            using var cmd = new SqlCommand("SELECT COUNT(*) FROM production.products;", conn);
-            conn.Open();
-            var count = (int)cmd.ExecuteScalar();
-            Console.WriteLine($"Total number of products: {count}");
+            try
+            {
+                using var conn = new SqlConnection(connectionString);
+                using var cmd = new SqlCommand("SELECT COUNT(*) FROM production.products;", conn);
+                conn.Open();
+                var count = (int)cmd.ExecuteScalar();
+                Console.WriteLine($"Total number of products: {count}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         /// <summary>
@@ -41,11 +48,18 @@ namespace ADO.Net.Examples
         /// </summary>
         static async Task ExecuteScalarAsync(string connectionString)
         {
-            using var conn = new SqlConnection(connectionString);
-            using var cmd = new SqlCommand("SELECT COUNT(*) FROM production.stocks;", conn);
-            conn.Open();
-            var count = (int)(await cmd.ExecuteScalarAsync());
-            Console.WriteLine($"Total number of stocks: {count}");
+            try
+            {
+                using var conn = new SqlConnection(connectionString);
+                using var cmd = new SqlCommand("SELECT COUNT(*) FROM production.stocks;", conn);
+                conn.Open();
+                var count = (int)(await cmd.ExecuteScalarAsync());
+                Console.WriteLine($"Total number of stocks: {count}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         /// <summary>
@@ -54,13 +68,20 @@ namespace ADO.Net.Examples
         /// </summary>
         static async Task ExecuteStoredProcedureWithOutputParameterAsync(string connectionString)
         {
-            using var conn = new SqlConnection(connectionString);
-            using var cmd = new SqlCommand("sales.store_count", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add(new SqlParameter("@count", SqlDbType.Int) { Direction = ParameterDirection.Output });
-            conn.Open();
-            await cmd.ExecuteNonQueryAsync();
-            Console.WriteLine($"Total number of stores: {(int)cmd.Parameters["@count"].Value}");
+            try
+            {
+                using var conn = new SqlConnection(connectionString);
+                using var cmd = new SqlCommand("sales.store_count", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@count", SqlDbType.Int) { Direction = ParameterDirection.Output });
+                conn.Open();
+                await cmd.ExecuteNonQueryAsync();
+                Console.WriteLine($"Total number of stores: {(int)cmd.Parameters["@count"].Value}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         /// <summary>
@@ -69,13 +90,20 @@ namespace ADO.Net.Examples
         /// </summary>
         static void ExecuteReader(string connectionString)
         {
-            using var conn = new SqlConnection(connectionString);
-            using var cmd = new SqlCommand("SELECT store_name FROM sales.stores;", conn);
-            conn.Open();
-            using var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
-            while (reader.Read())
+            try
             {
-                Console.WriteLine($"\tStore: {reader["store_name"]}");
+                using var conn = new SqlConnection(connectionString);
+                using var cmd = new SqlCommand("SELECT store_name FROM sales.stores;", conn);
+                conn.Open();
+                using var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+                while (reader.Read())
+                {
+                    Console.WriteLine($"\tStore: {reader["store_name"]}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
 
@@ -85,16 +113,23 @@ namespace ADO.Net.Examples
         /// </summary>
         static void ExecuteReaderWithTypeConversionAndNullChecking(string connectionString)
         {
-            using var conn = new SqlConnection(connectionString);
-            using var cmd = new SqlCommand("SELECT manager_id FROM sales.staffs;", conn);
-            conn.Open();
-            using var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
-            while (reader.Read())
+            try
             {
-                if (!reader.IsDBNull(reader.GetOrdinal("manager_id")))
+                using var conn = new SqlConnection(connectionString);
+                using var cmd = new SqlCommand("SELECT manager_id FROM sales.staffs;", conn);
+                conn.Open();
+                using var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+                while (reader.Read())
                 {
-                    Console.WriteLine($"\tManager ID: {(int)reader["manager_id"]}");
+                    if (!reader.IsDBNull(reader.GetOrdinal("manager_id")))
+                    {
+                        Console.WriteLine($"\tManager ID: {(int)reader["manager_id"]}");
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
 
@@ -104,21 +139,28 @@ namespace ADO.Net.Examples
         /// </summary>
         static void ExecuteReaderWithMultipleResultSets(string connectionString)
         {
-            using var conn = new SqlConnection(connectionString);
-            using var cmd = new SqlCommand("SELECT store_name FROM sales.stores; SELECT manager_id FROM sales.staffs;", conn);
-            conn.Open();
-            using var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
-            while (reader.Read())
+            try
             {
-                Console.WriteLine($"\tStore: {reader["store_name"]}");
-            }
-            reader.NextResult();
-            while (reader.Read())
-            {
-                if (!reader.IsDBNull(reader.GetOrdinal("manager_id")))
+                using var conn = new SqlConnection(connectionString);
+                using var cmd = new SqlCommand("SELECT store_name FROM sales.stores; SELECT manager_id FROM sales.staffs;", conn);
+                conn.Open();
+                using var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+                while (reader.Read())
                 {
-                    Console.WriteLine($"\tManager ID: {(int)reader["manager_id"]}");
+                    Console.WriteLine($"\tStore: {reader["store_name"]}");
                 }
+                reader.NextResult();
+                while (reader.Read())
+                {
+                    if (!reader.IsDBNull(reader.GetOrdinal("manager_id")))
+                    {
+                        Console.WriteLine($"\tManager ID: {(int)reader["manager_id"]}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
     }
