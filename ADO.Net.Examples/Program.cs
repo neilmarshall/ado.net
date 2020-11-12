@@ -16,6 +16,7 @@ namespace ADO.Net.Examples
                 ExecuteScalarAsync(connectionString),
                 ExecuteStoredProcedureWithOutputParameterAsync(connectionString));
             ExecuteReader(connectionString);
+            ExecuteReaderWithTypeConversionAndNullChecking(connectionString);
         }
 
         /// <summary>
@@ -62,7 +63,7 @@ namespace ADO.Net.Examples
         }
 
         /// <summary>
-        /// The 'ExecuteReader' methods creates a data reader (a forward-only cursor) that
+        /// The 'ExecuteReader' method creates a data reader (a forward-only cursor) that
         /// can be used to iterate through one or more result sets
         /// </summary>
         static void ExecuteReader(string connectionString)
@@ -76,5 +77,25 @@ namespace ADO.Net.Examples
                 Console.WriteLine($"\tStore: {reader["store_name"]}");
             }
         }
+
+        /// <summary>
+        /// The 'IsDBNull' method on the DataReader class checks if a value is
+        /// null - this is useful before attempting to cast to a non-nullable type
+        /// </summary>
+        static void ExecuteReaderWithTypeConversionAndNullChecking(string connectionString)
+        {
+            using var conn = new SqlConnection(connectionString);
+            using var cmd = new SqlCommand("SELECT manager_id FROM sales.staffs;", conn);
+            conn.Open();
+            using var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
+            while (reader.Read())
+            {
+                if (!reader.IsDBNull(reader.GetOrdinal("manager_id")))
+                {
+                    Console.WriteLine($"\tManager ID: {(int)reader["manager_id"]}");
+                }
+            }
+        }
+
     }
 }
