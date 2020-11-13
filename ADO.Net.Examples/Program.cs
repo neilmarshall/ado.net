@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ADO.Net.Examples
@@ -18,6 +20,9 @@ namespace ADO.Net.Examples
             ExecuteReader(connectionString);
             ExecuteReaderWithTypeConversionAndNullChecking(connectionString);
             ExecuteReaderWithMultipleResultSets(connectionString);
+            GetQueryAsDataTable(connectionString);
+            Console.WriteLine(ConvertDataTableToGenericList(connectionString).Select(dp => dp.ListPrice).Sum());
+            GetMultipleResultSetsAsDataSet(connectionString);
         }
 
         /// <summary>
@@ -155,6 +160,107 @@ namespace ADO.Net.Examples
                     if (!reader.IsDBNull(reader.GetOrdinal("manager_id")))
                     {
                         Console.WriteLine($"\tManager ID: {(int)reader["manager_id"]}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        static void GetQueryAsDataTable(string connectionString)
+        {
+            try
+            {
+                using var conn = new SqlConnection(connectionString);
+                using var cmd = new SqlCommand(
+                    "SELECT TOP 4 p.product_name, p.model_year, p.list_price, b.brand_name, c.category_name FROM production.products p JOIN production.brands b ON p.brand_id = b.brand_id JOIN production.categories c ON p.category_id = c.category_id;",
+                    conn);
+                using var da = new SqlDataAdapter(cmd);
+                var dt = new DataTable();
+                da.Fill(dt);  // the 'Fill' method handles the opening (and closing) of the connection
+                var index = 1;
+                foreach (DataRow row in dt.Rows)
+                {
+                    Console.WriteLine($"Parsing row {index}");
+                    foreach (DataColumn col in dt.Columns)
+                    {
+                        Console.WriteLine($"\t{col.ColumnName}: {row[col.ColumnName].ToString()}");
+                    }
+                    index++;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private class DetailedProduct
+        {
+            public string ProductName { get; set; }
+            public int ModelYear { get; set; }
+            public decimal ListPrice { get; set; }
+            public string BrandName { get; set; }
+            public string CategoryName { get; set; }
+        }
+
+        static List<DetailedProduct> ConvertDataTableToGenericList(string connectionString)
+        {
+            try
+            {
+                using var conn = new SqlConnection(connectionString);
+                using var cmd = new SqlCommand(
+                    "SELECT TOP 4 p.product_name, p.model_year, p.list_price, b.brand_name, c.category_name FROM production.products p JOIN production.brands b ON p.brand_id = b.brand_id JOIN production.categories c ON p.category_id = c.category_id;",
+                    conn);
+                using var da = new SqlDataAdapter(cmd);
+                var dt = new DataTable();
+                da.Fill(dt);  // the 'Fill' method handles the opening (and closing) of the connection
+                if (dt.Rows.Count > 0)
+                {
+                    var products =
+                        from row in dt.AsEnumerable()  // must convert to an enumerable object
+                        select new DetailedProduct
+                        {
+                            BrandName = row.Field<string>("brand_name"),
+                            CategoryName = row.Field<string>("category_name"),
+                            ListPrice = row.Field<decimal>("list_price"),
+                            ModelYear = row.Field<short>("model_year"),
+                            ProductName = row.Field<string>("product_name")
+                        };
+                    return products.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
+        }
+
+        static void GetMultipleResultSetsAsDataSet(string connectionString)
+        {
+            try
+            {
+                DataSet ds = new DataSet();
+                using var conn = new SqlConnection(connectionString);
+                using var cmd = new SqlCommand("SELECT store_name FROM sales.stores; SELECT manager_id FROM sales.staffs;", conn);
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+                if (ds.Tables.Count > 0)
+                {
+                    var storeNames = ds.Tables[0];
+                    foreach (var storeName in storeNames.AsEnumerable())
+                    {
+                        Console.WriteLine($"\tStore: {storeName.Field<string>("store_name")}");
+                    }
+
+                    var managerIds = ds.Tables[1];
+                    foreach (var managerId in managerIds.AsEnumerable())
+                    {
+                        Console.WriteLine($"\tManager ID: {managerId.Field<int?>("manager_id") ?? 0}");
                     }
                 }
             }
