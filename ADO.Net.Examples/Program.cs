@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ADO.Net.Examples.DTOs;
+using ADO.Net.Examples.Wrappers;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -23,6 +25,9 @@ namespace ADO.Net.Examples
             GetQueryAsDataTable(connectionString);
             Console.WriteLine(ConvertDataTableToGenericList(connectionString).Select(dp => dp.ListPrice).Sum());
             GetMultipleResultSetsAsDataSet(connectionString);
+
+            var brands = (new GetWrapper(connectionString)).GetRecords<Brand>("SELECT * FROM [production].[brands];");
+            var categories= (new GetWrapper(connectionString)).GetRecords<Category>("SELECT * FROM [production].[categories];");
         }
 
         /// <summary>
