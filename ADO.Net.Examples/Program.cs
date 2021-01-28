@@ -1,12 +1,10 @@
-﻿using ADO.Net.Examples.DTOs;
-using ADO.Net.Examples.Wrappers;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
+﻿using System;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using ADO.Net.Examples.DTOs;
+using ADO.Net.Examples.Wrappers;
 using static ADO.Net.Examples.DBFunctions;
 
 namespace ADO.Net.Examples
@@ -15,7 +13,9 @@ namespace ADO.Net.Examples
     {
         static async Task Main(string[] args)
         {
-            var connectionString = ConfigurationManager.ConnectionStrings["AzureDBConnection"].ConnectionString;
+            var configuration = new ConfigurationBuilder().AddJsonFile("Config.json").Build();
+            var connectionString = configuration.GetConnectionString("AzureDBConnection");
+
             ExecuteScalar(connectionString);
             await Task.WhenAll(
                 ExecuteScalarAsync(connectionString),
