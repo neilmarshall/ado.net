@@ -48,5 +48,15 @@ namespace DapperDemo.Fixtures
                 store.Employees);
         }
 
+        [TestMethod]
+        public void GetEmployeesByStoreMethod3Fixture()
+        {
+            var employees = dapperDemoRepository.GetEmployeesWithStore();
+
+            Assert.AreEqual(10, employees.Count);
+            Assert.AreEqual("Fabiola", employees[0].FirstName);
+            Assert.AreEqual("Jackson", employees[0].LastName);
+            Assert.AreEqual("Santa Cruz", employees[0].Store.City);
+        }
     }
 }

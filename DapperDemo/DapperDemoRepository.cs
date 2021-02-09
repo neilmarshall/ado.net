@@ -1,4 +1,5 @@
-﻿using System.Data.SqlClient;
+﻿using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using Dapper;
 
@@ -49,6 +50,23 @@ namespace DapperDemo
             }
 
             return store;
+        }
+
+        public List<Employee> GetEmployeesWithStore()
+        {
+            var employees = this.db.Query<Employee, Store, Employee>(
+                    @"SELECT first_name FirstName, last_name LastName, city
+                        FROM sales.stores
+                        JOIN sales.staffs
+                          ON sales.stores.store_id = sales.staffs.store_id;",
+                    (employee, store) =>
+                    {
+                        employee.Store = store;
+                        return employee;
+                    },
+                    splitOn: "city").ToList();
+
+            return employees;
         }
     }
 }
