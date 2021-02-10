@@ -17,9 +17,9 @@ namespace DapperDemo.Fixtures
         }
 
         [TestMethod]
-        public void GetEmployeesByStoreMethod1Fixture()
+        public void GetEmployeesByStoreMultipleQueriesFixture()
         {
-            var store = dapperDemoRepository.GetEmployeesByStoreMethod1("Baldwin");
+            var store = dapperDemoRepository.GetEmployeesByStoreMultipleQueries("Baldwin");
 
             Assert.AreEqual("Baldwin", store.City);
             CollectionAssert.AreEqual(
@@ -33,9 +33,9 @@ namespace DapperDemo.Fixtures
         }
 
         [TestMethod]
-        public void GetEmployeesByStoreMethod2Fixture()
+        public void GetEmployeesByStoreQueryMultipleFixture()
         {
-            var store = dapperDemoRepository.GetEmployeesByStoreMethod2("Baldwin");
+            var store = dapperDemoRepository.GetEmployeesByStoreQueryMultiple("Baldwin");
 
             Assert.AreEqual("Baldwin", store.City);
             CollectionAssert.AreEqual(
@@ -49,7 +49,7 @@ namespace DapperDemo.Fixtures
         }
 
         [TestMethod]
-        public void GetEmployeesByStoreMethod3Fixture()
+        public void GetEmployeesWithStoreFixture()
         {
             var employees = dapperDemoRepository.GetEmployeesWithStore();
 
@@ -57,6 +57,22 @@ namespace DapperDemo.Fixtures
             Assert.AreEqual("Fabiola", employees[0].FirstName);
             Assert.AreEqual("Jackson", employees[0].LastName);
             Assert.AreEqual("Santa Cruz", employees[0].Store.City);
+        }
+
+        [TestMethod]
+        public void DemonstrateListSupportForInOperator()
+        {
+            var employees = dapperDemoRepository.GetEmployeesWithIds(new[] { 4, 6, 7 });
+
+            CollectionAssert.AreEqual(
+                new[] { "marcelene.boyer@bikes.shop", "venita.daniel@bikes.shop", "virgie.wiggins@bikes.shop" },
+                employees);
+        }
+
+        [TestMethod]
+        public void DemonstrateStoredProcedureExecution()
+        {
+            Assert.AreEqual(3, dapperDemoRepository.GetStoreCount());
         }
     }
 }

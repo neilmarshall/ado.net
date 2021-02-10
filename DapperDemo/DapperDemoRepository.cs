@@ -14,7 +14,7 @@ namespace DapperDemo
             this.db = new SqlConnection(connString);
         }
 
-        public Store GetEmployeesByStoreMethod1(string city)
+        public Store GetEmployeesByStoreMultipleQueries(string city)
         {
             var store = this.db.Query<Store>(
                     "SELECT store_id id, city FROM sales.stores WHERE city = @city",
@@ -34,7 +34,7 @@ namespace DapperDemo
             return store;
         }
 
-        public Store GetEmployeesByStoreMethod2(string city)
+        public Store GetEmployeesByStoreQueryMultiple(string city)
         {
             var gridReader = this.db.QueryMultiple(
                     "SELECT store_id id, city FROM sales.stores WHERE city = @city;" +
@@ -67,6 +67,23 @@ namespace DapperDemo
                     splitOn: "city").ToList();
 
             return employees;
+        }
+
+        public string[] GetEmployeesWithIds(int[] ids)
+        {
+            return this.db.Query<string>(
+                "SELECT email FROM sales.staffs WHERE staff_id IN @ids ORDER BY email;",
+                new { ids }).ToArray();
+        }
+
+        public int GetStoreCount()
+        {
+            var parameters = new DynamicParameters();
+            parameters.Add("@count", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
+
+            this.db.Execute("sales.store_count", parameters, commandType: System.Data.CommandType.StoredProcedure);
+
+            return parameters.Get<int>("@count");
         }
     }
 }
